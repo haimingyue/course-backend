@@ -2,11 +2,23 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { expressjwt: jwt } = require("express-jwt");
+const { jwtSecretKey } = require("./config/jwtSecretKye");
+
 app.use(cors());
 
 // 解析json格式的数据
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(
+  jwt({
+    secret: jwtSecretKey,
+    algorithms: ["HS256"],
+  }).unless({
+    path: [/^\/api\/user\/v1\/register/, /^\/api\/user\/v1\/login/],
+  })
+);
 
 app.get("/test", (req, res) => {
   res.send("小滴课堂");
