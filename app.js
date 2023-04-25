@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const { expressjwt: jwt } = require("express-jwt");
 const { jwtSecretKey } = require("./config/jwtSecretKye");
+const DB = require("./config/sequelize");
 
 app.use(cors());
 
@@ -16,12 +17,13 @@ app.use(
     secret: jwtSecretKey,
     algorithms: ["HS256"],
   }).unless({
-    path: [/^\/api\/user\/v1\/register/, /^\/api\/user\/v1\/login/],
+    path: [/^\/api\/user\/v1\/register/, /^\/api\/user\/v1\/login/, "/test"],
   })
 );
 
-app.get("/test", (req, res) => {
-  res.send("小滴课堂");
+app.get("/test", async (req, res) => {
+  const result = await DB.Account.findAll();
+  res.send(result);
 });
 
 // 错误中间件
