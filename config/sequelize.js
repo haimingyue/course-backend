@@ -4,6 +4,7 @@ const initModels = require("../models/init-models");
 const sequelize = new Sequelize("xiaodi_edu", "root", "Pass_123", {
   host: "49.234.9.51",
   dialect: "mysql",
+  timezone: "+08:00",
 });
 
 (async () => {

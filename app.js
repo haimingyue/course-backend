@@ -17,14 +17,18 @@ app.use(
     secret: jwtSecretKey,
     algorithms: ["HS256"],
   }).unless({
-    path: [/^\/api\/user\/v1\/register/, /^\/api\/user\/v1\/login/, "/test"],
+    path: [
+      /^\/api\/user\/v1\/register/,
+      /^\/api\/user\/v1\/login/,
+      /^\/api\/notify\/v1/,
+      "/test",
+    ],
   })
 );
 
-app.get("/test", async (req, res) => {
-  const result = await DB.Account.findAll();
-  res.send(result);
-});
+// 通知相关的接口
+const notifyRouter = require("./router/notify.js");
+app.use("/api/notify/v1", notifyRouter);
 
 // 错误中间件
 app.use((err, req, res, next) => {
