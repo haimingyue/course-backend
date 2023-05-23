@@ -2,7 +2,7 @@ const svgCaptcha = require("svg-captcha");
 
 const redisConfig = require("../config/redisConfig");
 const NotifyService = {
-  captcha: async (req, res) => {
+  captcha: async (key, type) => {
     const captcha = svgCaptcha.create({
       size: 4,
       ignoreChars: "0o1i",
@@ -13,7 +13,7 @@ const NotifyService = {
     // req.session.captcha = captcha.text;
     // res.type("svg");
     // res.status(200).send(captcha.data);
-    redisConfig.set("captcha", captcha.text, 600);
+    redisConfig.set(`${type}:captcha:` + key, captcha.text, 600);
     return captcha.data;
   },
 };
