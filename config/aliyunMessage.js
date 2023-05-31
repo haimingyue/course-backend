@@ -12,6 +12,4 @@ const sendMsgCode = (phone, randomCode) => {
   });
 };
 
-module.exports = {
-  sendMsgCode,
-};
+module.exports = sendMsgCode;

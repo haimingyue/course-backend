@@ -1,8 +1,9 @@
 const svgCaptcha = require("svg-captcha");
 
 const redisConfig = require("../config/redisConfig");
+const aliyunMessage = require("../config/aliyunMessage");
 const NotifyService = {
-  captcha: async (key, type) => {
+  captcha: (key, type) => {
     const captcha = svgCaptcha.create({
       size: 4,
       ignoreChars: "0o1i",
@@ -15,6 +16,60 @@ const NotifyService = {
     // res.status(200).send(captcha.data);
     redisConfig.set(`${type}:captcha:` + key, captcha.text, 600);
     return captcha.data;
+  },
+
+  sendCode: async (phone, captcha, type, key, randomCode) => {
+    // 60s重复获取的限制
+
+    if (await redisConfig.exists(`${type}:over:` + phone)) {
+      return {
+        code: -1,
+        msg: "请60s后再试",
+      };
+    }
+
+    // 判断图形验证码是否存在
+    if (!(await redisConfig.exists(`${type}:captcha:` + key))) {
+      return {
+        code: -1,
+        msg: "请发送验证码",
+      };
+    }
+
+    // 对比图形验证码与redis中的是否一致
+    let captchaRes = await redisConfig.get(`${type}:captcha:` + key);
+    console.log(captcha);
+    console.log(captchaRes);
+    if (captcha.toLowerCase() !== captchaRes.toLowerCase()) {
+      return {
+        code: -1,
+        msg: "图形验证码不正确",
+      };
+    }
+
+    // 阿里云发送手机验证码
+    let codeRes = (await aliyunMessage(phone, randomCode)).data;
+
+    // 存储到redis，设置有效期10min
+    redisConfig.set(`${type}:code:` + phone, randomCode, 600);
+
+    // 存60s，判断key值，过了之后才可以调取接口
+    redisConfig.set(`${type}:over:` + phone, "1", 60);
+
+    // 获取到手机验证码，删除上次的图形验证码
+    redisConfig.del(`${type}:captcha:` + key);
+    console.log("codeRes", codeRes);
+    if (codeRes.code === 200) {
+      return {
+        code: 0,
+        msg: "发送成功",
+      };
+    } else {
+      return {
+        code: -1,
+        msg: "发送失败",
+      };
+    }
   },
 };
 

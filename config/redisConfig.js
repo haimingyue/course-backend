@@ -17,6 +17,10 @@ const redisConfig = {
   del: (key) => {
     return redis.del(key);
   },
+  // 判断是否存在
+  exists: (key) => {
+    return redis.exists(key);
+  },
 };
 
 module.exports = redisConfig;
