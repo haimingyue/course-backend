@@ -21,13 +21,14 @@ const NotifyController = {
     let _key = SecretTool.md5(
       GetUserInfoTool.getIp(req) + GetUserInfoTool.getUseragent(req)
     );
-    let handleRes = NotifyService.sendCode(
+    let handleRes = await NotifyService.sendCode(
       phone,
       captcha,
       type,
       _key,
       RandomTool.randomCode()
     );
+    console.log("handleRes" + handleRes);
     res.send(handleRes);
   },
 };
