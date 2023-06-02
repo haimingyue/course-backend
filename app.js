@@ -3,7 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { expressjwt: jwt } = require("express-jwt");
-const { jwtSecretKey } = require("./config/jwtSecretKye");
+const { jwtSecretKey } = require("./config/jwtSecretKey");
 const DB = require("./config/sequelize");
 
 app.use(cors());
@@ -29,6 +29,10 @@ app.use(
 // 通知相关的接口
 const notifyRouter = require("./router/notify.js");
 app.use("/api/notify/v1", notifyRouter);
+
+// 用户相关的接口
+const userRouter = require("./router/user.js");
+app.use("/api/user/v1", userRouter);
 
 // 错误中间件
 app.use((err, req, res, next) => {
