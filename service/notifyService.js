@@ -3,6 +3,9 @@ const svgCaptcha = require("svg-captcha");
 const redisConfig = require("../config/redisConfig");
 const aliyunMessage = require("../config/aliyunMessage");
 const dayjs = require("dayjs");
+const BackCode = require("../utils/BackCode");
+const CodeEnum = require("../utils/CodeEnum");
+
 const NotifyService = {
   captcha: (key, type) => {
     const captcha = svgCaptcha.create({
@@ -35,30 +38,19 @@ const NotifyService = {
         (await redisConfig.get(`${type}:code:` + phone)).split("_")[0]
       );
       if (dayjs(Date.now()).diff(dateRedis, "second") <= 60) {
-        return {
-          code: -1,
-          msg: "请60s后再试",
-        };
+        return BackCode.buildResult(CodeEnum.CODE_LIMITED);
       }
     }
 
     // 判断图形验证码是否存在
     if (!(await redisConfig.exists(`${type}:captcha:` + key))) {
-      return {
-        code: -1,
-        msg: "请发送验证码",
-      };
+      return BackCode.buildError({ msg: "请发送图形验证码" });
     }
 
     // 对比图形验证码与redis中的是否一致
     let captchaRes = await redisConfig.get(`${type}:captcha:` + key);
-    console.log(captcha);
-    console.log(captchaRes);
     if (captcha.toLowerCase() !== captchaRes.toLowerCase()) {
-      return {
-        code: -1,
-        msg: "图形验证码不正确",
-      };
+      return BackCode.buildError({ msg: "图形验证码错误" });
     }
 
     // 阿里云发送手机验证码
@@ -79,17 +71,10 @@ const NotifyService = {
 
     // 获取到手机验证码，删除上次的图形验证码
     redisConfig.del(`${type}:captcha:` + key);
-    console.log("codeRes", codeRes);
     if (codeRes.code === 200) {
-      return {
-        code: 0,
-        msg: "发送成功",
-      };
+      return BackCode.buildSuccessAndMsg({ msg: "发送成功" });
     } else {
-      return {
-        code: -1,
-        msg: "发送失败",
-      };
+      return BackCode.buildError({ msg: "发送失败" });
     }
   },
 };
