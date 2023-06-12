@@ -14,6 +14,9 @@ const NotifyService = {
       noise: 1,
       color: true,
       background: "#aaa",
+      color: "#fff",
+      fontSize: 75,
+      height: 60,
     });
     // req.session.captcha = captcha.text;
     // res.type("svg");
@@ -47,9 +50,13 @@ const NotifyService = {
       return BackCode.buildError({ msg: "请发送图形验证码" });
     }
 
+    if (!captcha) {
+      return BackCode.buildError({ msg: "缺少Captcha参数" });
+    }
+
     // 对比图形验证码与redis中的是否一致
     let captchaRes = await redisConfig.get(`${type}:captcha:` + key);
-    if (captcha.toLowerCase() !== captchaRes.toLowerCase()) {
+    if (!(String(captcha).toLowerCase() === captchaRes.toLowerCase())) {
       return BackCode.buildError({ msg: "图形验证码错误" });
     }
 
