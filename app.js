@@ -21,7 +21,7 @@ app.use(
       /^\/api\/user\/v1\/register/,
       /^\/api\/user\/v1\/login/,
       /^\/api\/notify\/v1/,
-      "/test",
+      /^\/api\/wx_login\/v1/,
     ],
   })
 );
@@ -33,6 +33,10 @@ app.use("/api/notify/v1", notifyRouter);
 // 用户相关的接口
 const userRouter = require("./router/user.js");
 app.use("/api/user/v1", userRouter);
+
+// 微信相关的接口
+const wxLoginRouter = require("./router/wxLogin.js");
+app.use("/api/wx_login/v1", wxLoginRouter);
 
 // 错误中间件
 app.use((err, req, res, next) => {

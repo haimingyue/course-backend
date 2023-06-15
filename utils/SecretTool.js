@@ -1,5 +1,6 @@
 const md5 = require("blueimp-md5");
 const jwt = require("jsonwebtoken");
+const sha1 = require("sha1");
 const { jwtSecretKey } = require("../config/jwtSecretKey");
 
 class SecretTool {
@@ -13,6 +14,11 @@ class SecretTool {
   }
   static jwtVerify(query) {
     return jwt.verify(query, jwtSecretKey);
+  }
+
+  static sha1(query) {
+    console.log("query", query);
+    return sha1(query);
   }
 }
 
