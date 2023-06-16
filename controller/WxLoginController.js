@@ -16,6 +16,10 @@ const WxLoginController = {
     );
     res.send(handleRes);
   },
+  login: async (req, res) => {
+    let handleRes = await WxLoginService.login();
+    res.send(handleRes);
+  },
 };
 
 module.exports = WxLoginController;
