@@ -6,7 +6,6 @@ const WxLoginService = require("../service/WxLoginService");
 
 const WxLoginController = {
   wechat_insert: (req, res) => {
-    console.log("req", req);
     let { signature, timestamp, nonce, echostr } = req.query;
     let handleRes = WxLoginService.wechat_insert(
       signature,
@@ -18,6 +17,10 @@ const WxLoginController = {
   },
   login: async (req, res) => {
     let handleRes = await WxLoginService.login();
+    res.send(handleRes);
+  },
+  wechat_message: async (req, res) => {
+    let handleRes = await WxLoginService.wechat_message(req);
     res.send(handleRes);
   },
 };

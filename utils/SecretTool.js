@@ -17,7 +17,6 @@ class SecretTool {
   }
 
   static sha1(query) {
-    console.log("query", query);
     return sha1(query);
   }
 }

@@ -2,6 +2,7 @@ const SecretTool = require("../utils/SecretTool");
 const { getOR } = require("../config/wechatLogin");
 const redisConfig = require("../config/redisConfig");
 const Backcode = require("../utils/Backcode");
+const WxDataTool = require("../utils/WxDataTool");
 
 const WxLoginService = {
   wechat_insert: (signature, timestamp, nonce, echostr) => {
@@ -23,13 +24,18 @@ const WxLoginService = {
       }),
       120
     );
-    console.log("qrcodeUrl", qrcodeUrl);
     return Backcode.buildSuccessAndData({
       data: {
         qrcodeUrl,
         ticket,
       },
     });
+  },
+  wechat_message: async (req) => {
+    // return 'success';
+    let xmlStr = await WxDataTool.getXMLStr(req);
+    let json = await WxDataTool.parseXMLToJson(xmlStr);
+    let message = WxDataTool.formatMessage(json.xml);
   },
 };
 

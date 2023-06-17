@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const { expressjwt: jwt } = require("express-jwt");
 const { jwtSecretKey } = require("./config/jwtSecretKey");
-const DB = require("./config/sequelize");
+// const DB = require("./config/sequelize");
 
 app.use(cors());
 

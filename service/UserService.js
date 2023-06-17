@@ -9,12 +9,9 @@ const UserService = {
   register: async (phone, code) => {
     // 手机号注册查重
     let existPhone = await DB.Account.findAll({ where: { phone } });
-    console.log("existPhone", existPhone);
     if (existPhone.length > 0) {
-      console.log("重复了");
       return BackCode.buildResult(CodeEnum.ACCOUNT_REPEAT);
     }
-    console.log("这里不应该执行了");
     // 获取redis中的验证码和用户传入的对比
     if (await redisConfig.exists("register:code:" + phone)) {
       let codeRes = (await redisConfig.get("register:code:" + phone)).split(
@@ -34,9 +31,6 @@ const UserService = {
     // 生成token 7天
     let user = { avatar, name, phone };
     let token = SecretTool.jwtSign(user, "168h");
-    console.log("执行到这里1", name);
-    console.log("执行到这里2", avatar);
-    console.log("执行到这里3", phone);
     // 将用户信息插入到数据库
     await DB.Account.create({
       username: name,

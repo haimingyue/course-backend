@@ -28,7 +28,6 @@ const NotifyController = {
       _key,
       RandomTool.randomCode()
     );
-    console.log("handleRes" + handleRes);
     res.send(handleRes);
   },
 };
