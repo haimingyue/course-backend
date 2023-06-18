@@ -1,8 +1,10 @@
 const SecretTool = require("../utils/SecretTool");
 const { getOR } = require("../config/wechatLogin");
 const redisConfig = require("../config/redisConfig");
-const Backcode = require("../utils/Backcode");
+const BackCode = require("../utils/BackCode");
 const WxDataTool = require("../utils/WxDataTool");
+const DB = require("../config/sequelize");
+const RandomTool = require("../utils/RandomTool");
 
 const WxLoginService = {
   wechat_insert: (signature, timestamp, nonce, echostr) => {
@@ -24,7 +26,7 @@ const WxLoginService = {
       }),
       120
     );
-    return Backcode.buildSuccessAndData({
+    return BackCode.buildSuccessAndData({
       data: {
         qrcodeUrl,
         ticket,
@@ -32,10 +34,69 @@ const WxLoginService = {
     });
   },
   wechat_message: async (req) => {
-    // return 'success';
+    // 获取微信侧数据
     let xmlStr = await WxDataTool.getXMLStr(req);
     let json = await WxDataTool.parseXMLToJson(xmlStr);
     let message = WxDataTool.formatMessage(json.xml);
+
+    console.log("message", message);
+
+    // 返回数据给微信侧
+    let openidRes = await DB.Account.findAll({
+      where: { openid: message.FromUserName },
+      raw: true,
+    });
+
+    let head_img = RandomTool.randomAvatar();
+    let username = RandomTool.randomName();
+
+    let user = null;
+    if (openidRes.length === 0) {
+      // 未注册
+      let resData = await DB.Account.create({
+        openid: message.FromUserName,
+        head_img,
+        username,
+      });
+      user = { head_img, username, id: resData.toJSON().id };
+    } else {
+      // 已注册
+      user = {
+        head_img: openidRes[0].head_img,
+        username: openidRes[0].username,
+        id: openidRes[0].id,
+      };
+    }
+
+    let token = SecretTool.jwtSign(user, "168h");
+    let key = `wechat:ticket:${message.ticket}`;
+    const existsKet = await redisConfig.exists(key);
+    if (existsKet) {
+      await redisConfig.set(
+        key,
+        JSON.stringify({
+          isScan: "yes",
+          token,
+        }),
+        120
+      );
+    }
+
+    let content = "";
+    if (message.MsgType === "event") {
+      content =
+        message.Event === "subscribe"
+          ? "欢迎您关注小滴课堂公众号"
+          : "欢迎您再次关注小滴课堂公众号";
+      let msgStr = `<xml>
+            <ToUserName><![CDATA[${message.FromUserName}]]></ToUserName>
+            <FromUserName><![CDATA[${message.ToUserName}]]></FromUserName>
+            <CreateTime>${Date.now()}</CreateTime>
+            <MsgType><![CDATA[text]]></MsgType>
+            <Content><![CDATA[${content}]]></Content>
+          </xml>`;
+      return msgStr;
+    }
   },
 };
 
