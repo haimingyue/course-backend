@@ -23,6 +23,10 @@ const WxLoginController = {
     let handleRes = await WxLoginService.wechat_message(req);
     res.send(handleRes);
   },
+  check_scan: async (req, res) => {
+    let handleRes = await WxLoginService.check_scan(req);
+    res.send(handleRes);
+  },
 };
 
 module.exports = WxLoginController;

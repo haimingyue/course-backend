@@ -5,6 +5,7 @@ const BackCode = require("../utils/BackCode");
 const WxDataTool = require("../utils/WxDataTool");
 const DB = require("../config/sequelize");
 const RandomTool = require("../utils/RandomTool");
+const CodeEnum = require("../utils/CodeEnum");
 
 const WxLoginService = {
   wechat_insert: (signature, timestamp, nonce, echostr) => {
@@ -39,8 +40,6 @@ const WxLoginService = {
     let json = await WxDataTool.parseXMLToJson(xmlStr);
     let message = WxDataTool.formatMessage(json.xml);
 
-    console.log("message", message);
-
     // 返回数据给微信侧
     let openidRes = await DB.Account.findAll({
       where: { openid: message.FromUserName },
@@ -69,7 +68,7 @@ const WxLoginService = {
     }
 
     let token = SecretTool.jwtSign(user, "168h");
-    let key = `wechat:ticket:${message.ticket}`;
+    let key = `wechat:ticket:${message.Ticket}`;
     const existsKet = await redisConfig.exists(key);
     if (existsKet) {
       await redisConfig.set(
@@ -96,6 +95,22 @@ const WxLoginService = {
             <Content><![CDATA[${content}]]></Content>
           </xml>`;
       return msgStr;
+    }
+  },
+  check_scan: async (req) => {
+    let { ticket } = req.query;
+    let key = `wechat:ticket:${ticket}`;
+    const existsKet = await redisConfig.exists(key);
+    if (existsKet) {
+      let data = await redisConfig.get(key);
+      let { isScan, token } = JSON.parse(data);
+      if (isScan === "yes") {
+        return BackCode.buildSuccessAndData({ data: `Bearer ${token}` });
+      } else {
+        return BackCode.buildResult(CodeEnum.WECHAT_WAIT_SCAN);
+      }
+    } else {
+      return BackCode.buildError("二维码已失效");
     }
   },
 };

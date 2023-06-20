@@ -10,5 +10,6 @@ router.get("/login", WxLoginController.login);
 
 // 微信回调发送用户信息接口
 router.post("/callback", WxLoginController.wechat_message);
+router.get("/check_scan", WxLoginController.check_scan);
 
 module.exports = router;
