@@ -20,6 +20,7 @@ app.use(
     path: [
       /^\/api\/user\/v1\/register/,
       /^\/api\/user\/v1\/login/,
+      /^\/api\/user\/v1\/forget/,
       /^\/api\/notify\/v1/,
       /^\/api\/wx_login\/v1/,
     ],

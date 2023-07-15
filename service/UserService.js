@@ -39,6 +39,34 @@ const UserService = {
     });
     return BackCode.buildSuccessAndData({ data: `Bearer ${token}` });
   },
+  forget: async (req) => {
+    let { phone, password, code } = req.body;
+    // 获取redis中的验证码和用户传入的对比
+    // if (await redisConfig.exists("forget:code:" + phone)) {
+    let codeExist = await redisConfig.exists("change:code:" + phone);
+    if (!codeExist) {
+      return BackCode.buildError({ msg: "请先获取验证码" });
+    }
+    // }
+    // 判断redis中的验证码和用户传入的是否一致
+    let codeRes = (await redisConfig.get("change:code:" + phone)).split("_")[1];
+    if (code !== codeRes) {
+      return BackCode.buildError({ msg: "短信验证码不正确" });
+    }
+
+    // 修改密码
+    pwd = SecretTool.md5(password);
+
+    await DB.Account.update(
+      { pwd },
+      {
+        where: {
+          phone,
+        },
+      }
+    );
+    return BackCode.buildSuccessAndMsg({ msg: "修改成功" });
+  },
 };
 
 module.exports = UserService;
