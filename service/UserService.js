@@ -67,6 +67,27 @@ const UserService = {
     );
     return BackCode.buildSuccessAndMsg({ msg: "修改成功" });
   },
+  login: async (req) => {
+    // 参数判空
+    let { phone, password } = req.body;
+    if (!phone || !password) {
+      return BackCode.buildError({ msg: "参数错误" });
+    }
+    // 判断手机号是否注册过
+    let userInfo = await DB.Account.findAll({ where: { phone }, raw: true });
+    if (userInfo.length === 0) {
+      return BackCode.buildResult(CodeEnum.ACCOUNT_UNREGISTER);
+    }
+    // 判断密码是否正确
+    if (SecretTool.md5(password) !== userInfo[0].pwd) {
+      return BackCode.buildResult(CodeEnum.ACCOUNT_PWD_ERROR);
+    }
+    // 拼接token的用户信息，除去密码
+    let user = { ...userInfo[0], pwd: "" };
+    // 生成token 7天
+    let token = SecretTool.jwtSign(user, "168h");
+    return BackCode.buildSuccessAndData({ data: `Bearer ${token}` });
+  },
 };
 
 module.exports = UserService;

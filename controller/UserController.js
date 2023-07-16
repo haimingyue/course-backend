@@ -10,6 +10,10 @@ const UserController = {
     let handleRes = await UserService.forget(req);
     res.send(handleRes);
   },
+  login: async (req, res) => {
+    let handleRes = await UserService.login(req);
+    res.send(handleRes);
+  },
 };
 
 module.exports = UserController;
