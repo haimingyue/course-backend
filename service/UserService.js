@@ -69,8 +69,8 @@ const UserService = {
   },
   login: async (req) => {
     // 参数判空
-    let { phone, password } = req.body;
-    if (!phone || !password) {
+    let { phone, password, code } = req.body;
+    if (!phone || (!password && !code)) {
       return BackCode.buildError({ msg: "参数错误" });
     }
     // 判断手机号是否注册过
@@ -78,10 +78,26 @@ const UserService = {
     if (userInfo.length === 0) {
       return BackCode.buildResult(CodeEnum.ACCOUNT_UNREGISTER);
     }
-    // 判断密码是否正确
-    if (SecretTool.md5(password) !== userInfo[0].pwd) {
-      return BackCode.buildResult(CodeEnum.ACCOUNT_PWD_ERROR);
+
+    if (password) {
+      // 判断密码是否正确
+      if (SecretTool.md5(password) !== userInfo[0].pwd) {
+        return BackCode.buildResult(CodeEnum.ACCOUNT_PWD_ERROR);
+      }
+    } else {
+      // 获取redis中的验证码和用户传入的对比
+      if (await redisConfig.exists("login:code:" + phone)) {
+        let codeRes = (await redisConfig.get("login:code:" + phone)).split(
+          "_"
+        )[1];
+        if (code !== codeRes) {
+          return BackCode.buildError({ msg: "短信验证码不正确" });
+        }
+      } else {
+        return BackCode.buildError({ msg: "请先获取验证码" });
+      }
     }
+
     // 拼接token的用户信息，除去密码
     let user = { ...userInfo[0], pwd: "" };
     // 生成token 7天
